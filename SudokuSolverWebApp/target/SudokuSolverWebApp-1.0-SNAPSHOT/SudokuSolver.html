@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Sudoku Solver</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    </head>
+    <body>  
+        <div class="container">
+            <div class="row"><h1>Sudoku Solver v1.0</h1></div>
+        </div>
+        <hr>
+        <div class="container" id="SudokuBoard"></div>
+        <hr>
+        <div class="container">
+            <div class = "row">
+                <div class ="col-sm-6"><button id="solveBTN" class="btn btn-success btn-block">SOLVE</button></div>
+                <div class ="col-sm-6"><button id="clearBTN" class="btn btn-danger btn-block">CLEAR</button></div>
+            </div>
+        </div>
+        <br>
+        <div class="container">
+            <div class="row">
+                <div class ="col-sm-3"><button id="revertBTN" class="btn btn-info btn-block">REVERT</button></div>
+                <div class ="col-sm-3"><button id="saveBTN" class="btn btn-warning btn-block">SAVE</button></div>
+                <div class ="col-sm-3"><button id="shareBTN" class="btn btn-primary btn-block">SHARE</button></div>
+                <div class ="col-sm-3"><button id="loadBTN" class="btn btn-secondary btn-block">LOAD</button></div>
+            </div>
+        </div>
+        <div class="container">          
+            <div class="row" id="saveForm" hidden>
+                <hr>
+                <div class="form-group">
+                    <label for="bname">Board Name</label>
+                    <input type="text" class="form-control" id="bname" placeholder="Enter Board Name">
+                    <small id="bhint" hidden>Please Give The Board A Name</small>
+                </div>
+                <div class="form-group">
+                    <label for="aname">Author Name</label>
+                    <input type="text" class="form-control" id="aname" placeholder="Enter Your Name">
+                    <small id="ahint" hidden>Please Leave A Pen-Name</small>
+                </div>
+                <button class="btn btn-success" id="publishBTN">Save / Publish</button>
+                <small id="confirmMessage">Board Saved</small>
+            </div>
+            
+            <div class="row" id="shareForm" hidden>
+                <hr>
+                <div class="col-sm-3">
+                    <button id="copyBTN" class="btn btn-success btn-block">Copy Share Code</button>
+                </div>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="shareInput" placeholder="Enter Share Code Here">
+                </div>
+                <div class="col-sm-3">
+                    <button id="loadShareBTN" class="btn btn-info btn-block">Load Share</button>
+                </div>
+            </div>
+            
+            <div class="row" id="loadBoards" hidden>
+                <hr>
+                <table class="table" id="loadedBoards">
+                    <thead>
+                        <tr>
+                          <th scope="col">Name</th>
+                          <th scope="col">Author</th>
+                          <th scope="col">Load</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loadBoardTableBody"></tbody>
+                </table>
+            </div>
+            
+        </div>
+        
+        
+        <script src="http://code.jquery.com/jquery-latest.js"></script> 
+        <script>
+            var gBoard = [[[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]],
+                    [[""],[""],[""],[""],[""],[""],[""],[""],[""]]];
+            var showSaveForm = false;
+            var showShareForm = false;
+            var showLoadBoards = false;
+            
+            $(document).ready(function(){
+                var attachedHTML = "";
+                var refinedBox = 0;
+                var refinedCol = 0;
+                for (var row = 0; row < 9; row += 1){
+                    attachedHTML += '<div class="row">';
+                    for (var box = 0; box < 3; box += 1){
+                        refinedBox = 3 * Math.floor(row/3)+box;
+                        for (var col = 0; col < 3; col += 1){
+                            refinedCol = 3 * (row % 3) + col;
+                            attachedHTML += '<div class="col-sm-1"><input class="form-control" id="t'+refinedBox+''+refinedCol+'"></div>';
+                        }
+                        attachedHTML += '<div class="col-sm-1"></div>';
+                    }
+                    var newRow = (row+1) % 3;
+                    attachedHTML += "</div>";
+                    if (newRow === 0){
+                        attachedHTML += '<br><br>';
+                    }
+                    
+                }
+                $("#SudokuBoard").append(attachedHTML);
+            });
+            $("#solveBTN").click(function(){
+                var myBoard = {board:[[],[],[],[],[],[],[],[],[]]};
+                var refinedBox = 0;
+                var refinedCol = 0;
+                for (var row = 0; row < 9; row += 1){
+                    for (var box = 0; box < 3; box += 1){       
+                        refinedBox = 3 * Math.floor(row/3)+box;
+                        for (var col = 0; col < 3; col += 1){
+                            refinedCol = 3 * (row % 3) + col;
+                            if ($("#t"+refinedBox+''+refinedCol).val() !== ""){
+                                myBoard.board[refinedBox].push([$("#t"+refinedBox+''+refinedCol).val()]);
+                            }else{
+                                myBoard.board[refinedBox].push([1,2,3,4,5,6,7,8,9]);
+                            }
+                        }
+                    }
+                }
+                console.log(myBoard);
+                gBoard = myBoard.board;
+                $.ajax({
+                    url : 'api/SODUKUSOLVER',
+                    method : 'post',
+                    contentType : 'application/json',
+                    data : JSON.stringify(myBoard),                    
+                    success : function(data){
+                        console.log(data);
+                        var refinedBox = 0;
+                        var refinedCol = 0;
+                        for (var row = 0; row < 9; row += 1){
+                            for (var box = 0; box < 3; box += 1){
+                                refinedBox = 3 * Math.floor(row/3)+box;
+                                for (var col = 0; col < 3; col += 1){
+                                    refinedCol = 3 * (row % 3) + col;
+                                    $("#t"+refinedBox+''+refinedCol).val(data[refinedBox][refinedCol][0]);
+                                }
+                            }
+                        }
+                    },
+                    error : function(){
+                        console.log("NETWORK ERROR");
+                    }
+                });
+            });
+            $("#clearBTN").click(function(){
+                var refinedBox = 0;
+                var refinedCol = 0;
+                for (var row = 0; row < 9; row += 1){
+                    for (var box = 0; box < 3; box += 1){
+                        refinedBox = 3 * Math.floor(row/3)+box;
+                        for (var col = 0; col < 3; col += 1){
+                            refinedCol = 3 * (row % 3) + col;
+                            $("#t"+refinedBox+''+refinedCol).val("");
+                        }
+                    }
+                }
+            });
+             $("#revertBTN").click(function(){
+                 var refinedBox = 0;
+                var refinedCol = 0;
+                for (var row = 0; row < 9; row += 1){
+                    for (var box = 0; box < 3; box += 1){
+                        refinedBox = 3 * Math.floor(row/3)+box;
+                        for (var col = 0; col < 3; col += 1){
+                            refinedCol = 3 * (row % 3) + col;
+                            if (gBoard[refinedBox][refinedCol].length === 1){
+                                $("#t"+refinedBox+''+refinedCol).val(gBoard[refinedBox][refinedCol]);
+                            }else{
+                                $("#t"+refinedBox+''+refinedCol).val("");
+                            }
+                            
+                        }
+                    }
+                }
+             });
+             $("#saveBTN").click(function(){
+                 if (!showSaveForm){
+                     $("#confirmMessage").hide();
+                     $("#saveForm").show();
+                     showSaveForm = true;
+                     $("#shareForm").hide();
+                     showShareForm = false;
+                     $("#loadBoards").hide();
+                     showLoadBoards = false;
+                 }else{
+                     $("#saveForm").hide();
+                     showSaveForm = false;
+                 }
+             });
+             $("#publishBTN").click(function(){
+                var myBoard = {board:[[],[],[],[],[],[],[],[],[]],
+                    name: $("#bname").val(),
+                    author: $("#aname").val()
+                };
+                var canSave = true;
+                if ($("#bname").val().length === 0){
+                    canSave = false;
+                    $("#bhint").show();
+                }else{
+                    $("#bhint").hide();
+                }
+                if ($("#aname").val().length === 0){
+                    canSave = false;
+                    $("#ahint").show();
+                }else{
+                    $("#ahint").hide();
+                }
+                if (canSave === false){
+                    return;
+                }
+                var refinedBox = 0;
+                var refinedCol = 0;
+                for (var row = 0; row < 9; row += 1){
+                    for (var box = 0; box < 3; box += 1){       
+                        refinedBox = 3 * Math.floor(row/3)+box;
+                        for (var col = 0; col < 3; col += 1){
+                            refinedCol = 3 * (row % 3) + col;
+                            if ($("#t"+refinedBox+''+refinedCol).val() !== ""){
+                                myBoard.board[refinedBox].push([$("#t"+refinedBox+''+refinedCol).val()]);
+                            }else{
+                                myBoard.board[refinedBox].push([0]);
+                            }
+                        }
+                    }
+                }
+                console.log(myBoard);
+                $.ajax({
+                    url : 'api/SAVEBOARDWS',
+                    method : 'post',
+                    contentType : 'application/json',
+                    data : JSON.stringify(myBoard),                    
+                    success : function(data){
+                        console.log("Board Saved");
+                        $("#bname").val("");
+                        $("#aname").val("");
+                        $("#confirmMessage").show();
+                    },
+                    error : function(){
+                        console.log("NETWORK ERROR");
+                    }
+                });
+            });
+             $("#shareBTN").click(function(){
+                 if (!showShareForm){
+                     $("#shareForm").show();
+                     showShareForm = true;
+                     $("#saveForm").hide();
+                     showSaveForm = false;
+                     $("#loadBoards").hide();
+                     showLoadBoards = false;
+                 }else{
+                     $("#shareForm").hide();
+                     showShareForm = false;
+                 }
+             });
+            $("#copyBTN").click(function(){
+                var myBoard = "";
+                var refinedBox = 0;
+                var refinedCol = 0;
+                for (var row = 0; row < 9; row += 1){
+                    for (var box = 0; box < 3; box += 1){       
+                        refinedBox = 3 * Math.floor(row/3)+box;
+                        for (var col = 0; col < 3; col += 1){
+                            refinedCol = 3 * (row % 3) + col;
+                            if ($("#t"+refinedBox+''+refinedCol).val() !== ""){
+                                myBoard += ([$("#t"+refinedBox+''+refinedCol).val()]);
+                            }else{
+                                myBoard+= "0";
+                            }
+                        }
+                    }
+                }
+                const el = document.createElement('textarea');
+                el.value = myBoard;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                console.log(myBoard);
+             });
+            $('#loadBTN').click(function(){
+                 if (!showLoadBoards){
+                    $("#loadBoards").show();
+                    showLoadBoards = true;
+                    $("#shareForm").hide();
+                    showShareForm = false;
+                    $("#saveForm").hide();
+                    showSaveForm = false;
+                    $("#loadBoardTableBody").html('');
+                    $.ajax({
+                        url : 'api/LOADSUDOKUBOARDWS',
+                        method : 'get',
+                        contentType : 'application/json',
+                        success : function(data){
+                            var attachedHTML = '';
+                                for (const boardIndex in data){
+                            attachedHTML += ("<tr><td id = \"aname"+boardIndex+"\">"+data[boardIndex].name+
+                                    "</td><td id = \"bname"+boardIndex+"\">"+data[boardIndex].author+
+                                    "</td><td><button class = \"btn btn-success\" id = \""+boardIndex+"\">LOAD</button></td></tr>"     
+                                    );
+                                }
+                            $("#loadBoardTableBody").append(attachedHTML);
+                        },
+                        error : function(){
+                            console.log("NETWORK ERROR");
+                    }
+                });
+                 }else{
+                     $("#loadBoards").hide();
+                     showLoadBoards = false;
+                 }
+             });
+            $('#loadBoards').on('click', 'button', function(data) {
+                data.preventDefault();
+                var ID = {id: this.id};
+                console.log(ID);
+                
+                $.ajax({
+                    url : 'api/LOADSUDOKUBOARDWS',
+                    method : 'post',
+                    contentType : 'application/json',
+                    data : JSON.stringify(ID),
+                    success : function(data){
+                        console.log(data);
+                        var refinedBox = 0;
+                        var refinedCol = 0;
+                        for (var row = 0; row < 9; row += 1){
+                            for (var box = 0; box < 3; box += 1){
+                                refinedBox = 3 * Math.floor(row/3)+box;
+                                for (var col = 0; col < 3; col += 1){
+                                    refinedCol = 3 * (row % 3) + col;
+                                    if (data[refinedBox][refinedCol][0] !== 0){
+                                         $("#t"+refinedBox+''+refinedCol).val(data[refinedBox][refinedCol][0]);
+                                     }else{
+                                         $("#t"+refinedBox+''+refinedCol).val('');
+                                     }
+                                }
+                            }
+                        }
+                    },
+                    error : function(){
+                        console.log("NETWORK ERROR");
+                    }
+                });
+            });
+            $("#loadShareBTN").click(function(){
+                var myBoard = $("#shareInput").val();
+                myBoard = myBoard.split('');
+                var refinedBox = 0;
+                var refinedCol = 0;
+                var index = 0;
+                for (var row = 0; row < 9; row += 1){
+                    for (var box = 0; box < 3; box += 1){       
+                        refinedBox = 3 * Math.floor(row/3)+box;
+                        for (var col = 0; col < 3; col += 1){
+                            refinedCol = 3 * (row % 3) + col;
+                            if (myBoard[index] !== '0'){
+                                $("#t"+refinedBox+''+refinedCol).val(myBoard[index]);
+                            }else{
+                                $("#t"+refinedBox+''+refinedCol).val("");
+                            }
+                            index++;
+                        }
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>

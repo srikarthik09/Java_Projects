@@ -1,0 +1,26 @@
+Sudoku Solver Web App v1.0
+
+The Basics Functions
+--------------------
+The first thing that you should see are the 81 tiles of a sudoku board, to use the web app to its full potential, please enter into the tiles the numbers of a sudoku board, and click on the green button at the bottom that says 'SOLVE'. Once done, you can clear the board with the 'CLEAR' button, or look at what the board used to look like before it was solved with the 'REVERT' button.
+
+Saving
+------
+To save a board, make sure that the board is filled out at the top, then click the orange 'SAVE' button. Enter in your pen-name and name that you give the board above, and click save.
+
+Sharing
+-------
+To share a board, make sure that the board is filled out at the top, then click the blue 'SHARE' button. Unlike the 'SAVE' button, you will not need to make a username and password, but will only have to click a green button that says 'Copy Share Code'. After clicking this button, the code to load the board you made will be copied to keyboard, and a simple past will allow you to share that code with whoever. 
+
+Loading a Shared Board
+----------------------
+To load a shared board, please make sure that you have a shared board code. Getting a shared board code can be found above underneath the 'Sharing' section. Once when you have a share board code, click the blue 'SHARE' button. In the text field that is shown bellow, paste the shared board code, and then click the light blue 'Load Share' This will load that board into the 81 tile above.
+
+Some Example Codes to use to test this feature are :
+060300804537090000040006307090051238000000000713620040306400010000060523102009080
+And also
+000037600000600090008000004090000001600000009300000040700000800010009000002540000
+
+Loading a Saved Board
+---------------------
+If you have saved a board (or want to see what others have saved), you will be able to load that saved board by clicking on the grey 'LOAD' button. From there, scroll about and when you find a board you wish to load click the green 'LOAD' button.
